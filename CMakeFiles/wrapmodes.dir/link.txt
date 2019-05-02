@@ -1,0 +1,1 @@
+/usr/bin/c++    -fopenmp -D_LINUX -std=c++0x   CMakeFiles/wrapmodes.dir/src/wrapmodes/wrapmodes.cpp.o  -o bin/wrapmodes  -L/home/nvidia/Documents/sb7code-master/lib -rdynamic lib/libsb7.a -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lrt -ldl -Wl,-rpath,/home/nvidia/Documents/sb7code-master/lib 

@@ -1,0 +1,1 @@
+/usr/bin/c++    -fopenmp -D_LINUX -std=c++0x   CMakeFiles/multidrawindirect.dir/src/multidrawindirect/multidrawindirect.cpp.o  -o bin/multidrawindirect  -L/home/nvidia/Documents/sb7code-master/lib -rdynamic lib/libsb7.a -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lrt -ldl -Wl,-rpath,/home/nvidia/Documents/sb7code-master/lib 

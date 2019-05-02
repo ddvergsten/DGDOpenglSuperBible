@@ -1,0 +1,1 @@
+/usr/bin/c++    -fopenmp -D_LINUX -std=c++0x   CMakeFiles/bumpmapping.dir/src/bumpmapping/bumpmapping.cpp.o  -o bin/bumpmapping  -L/home/nvidia/Documents/sb7code-master/lib -rdynamic lib/libsb7.a -lglfw3 -lX11 -lXrandr -lXinerama -lXi -lXxf86vm -lXcursor -lGL -lrt -ldl -Wl,-rpath,/home/nvidia/Documents/sb7code-master/lib 
