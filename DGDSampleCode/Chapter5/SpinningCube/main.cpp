@@ -169,6 +169,33 @@ public:
             0.25f, -0.25f, 0.25f,
             0.25f, 0.25f, 0.25f,
 
+            //back face - common z topl - botl botr
+            -0.25f, 0.25f, -0.25f,
+            -0.25f, -0.25f, -0.25f,
+            0.25f, -0.25f, -0.25f,
+            //topl - botr topr
+            -0.25f, 0.25f, -0.25f,
+            0.25f, -0.25f, -0.25f,
+            0.25f, 0.25f, -0.25f,
+
+            //top face - common y
+            -0.25f, 0.25f, 0.25f,
+            -0.25f, 0.25f, -0.25f,
+            0.25f, 0.25f, -0.25f,
+
+            -0.25f, 0.25f, 0.25f,
+            0.25f, 0.25f, -0.25f,
+            0.25f, 0.25f, 0.25f,
+
+            //bottom, face - common y
+            -0.25f, -0.25f, 0.25f,
+            -0.25f, -0.25f, -0.25f,
+            0.25f, -0.25f, -0.25f,
+
+            -0.25f, -0.25f, 0.25f,
+            0.25f, -0.25f, -0.25f,
+            0.25f, -0.25f, 0.25f,
+
         };
         glGenBuffers(1, &_buffer);
         glBindBuffer(GL_ARRAY_BUFFER, _buffer);
@@ -176,49 +203,46 @@ public:
 
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
         glEnableVertexAttribArray(0);
+
+        glEnable(GL_DEPTH_TEST);
     }
 
     virtual void render(double currentTime)
     {
         glUseProgram(program);
         glViewport(0, 0, info.windowWidth, info.windowHeight);
-       // glClearBufferfv(GL_COLOR, 0, green);
-       // glClearBufferfv(GL_DEPTH, 0, &one);
 
         float f = (float)currentTime * 0.3f;
-        _mv_matrix = vmath::translate(0.0f, 0.0f, -4.0f) *
-                                vmath::translate(sinf(2.1f * f) * 0.5f,
-                                                    cosf(1.7f * f) * 0.5f,
-                                                    sinf(1.3f * f) * cosf(1.5f * f) * 2.0f) *
-                                vmath::rotate((float)currentTime * 45.0f, 0.0f, 1.0f, 0.0f) *
-                                vmath::rotate((float)currentTime * 81.0f, 1.0f, 0.0f, 0.0f);
-        //_mv_matrix =
-          //      vmath::translate(0.0f, 0.0f, -10.0f);// *
-//                vmath::translate(sinf(2.1f * f)*0.5f,
-//                                 cosf(1.7f * f) * 0.5f,
-//                                 sinf(1.3f * f) * cosf(1.5f * f) * 2.0f) *
-//             vmath::rotate((float)currentTime * 45.0f, 0.0f, 1.0f, 0.0f) *
-//             vmath::rotate((float)currentTime * 81.0f, 1.0f, 0.0f, 0.0f);
-
+//        _mv_matrix = vmath::translate(0.0f, 0.0f, -4.0f) *
+//                                vmath::translate(sinf(2.1f * f) * 0.5f,
+//                                                    cosf(1.7f * f) * 0.5f,
+//                                                    sinf(1.3f * f) * cosf(1.5f * f) * 2.0f) *
+//                                vmath::rotate((float)currentTime * 45.0f, 0.0f, 1.0f, 0.0f) *
+//                                vmath::rotate((float)currentTime * 81.0f, 1.0f, 0.0f, 0.0f);
 
         glClearBufferfv(GL_COLOR, 0, sb7::color::Green);
+        glClearBufferfi(GL_DEPTH_STENCIL, 0, 1.0f, 0);
+
+
         glUseProgram(program);
-        glUniformMatrix4fv(mv_location, 1, GL_FALSE, _mv_matrix);
+
+
+
         glUniformMatrix4fv(proj_location, 1, GL_FALSE, _proj_matrix);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);//one face for now
+        for(int i = 0 ; i < 24; i++)
+        {
+            float f = (float)i + (float)currentTime * 0.3f;
+            _mv_matrix = vmath::translate(0.0f, 0.0f, -20.0f) *
+                                    vmath::rotate((float)currentTime * 45.0f, 0.0f, 1.0f, 0.0f) *
+                                    vmath::rotate((float)currentTime * 21.0f, 1.0f, 0.0f, 0.0f) *
+                    vmath::translate(sinf(2.1f * f) * 2.0f,
+                                     cosf(1.7f * f) * 2.0f,
+                                     sinf(1.3f * f)*cosf(1.5f * f) * 2.0f);
+            glUniformMatrix4fv(mv_location, 1, GL_FALSE, _mv_matrix);
+            glDrawArrays(GL_TRIANGLES, 0, 24);//one face for now
 
-//        static const GLfloat green[] = { 0.0f, 0.25f, 0.0f, 1.0f };
-
-//        glViewport(0, 0, info.windowWidth, info.windowHeight);
-//        glClearBufferfv(GL_COLOR, 0, green);
-
-//        glUseProgram(program);
-//        glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-//        glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-
-//        glUniform4f(0, 0.0f, 1.0f, 0.0f, 1.0f);
-//        glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
 
     }
 
@@ -226,7 +250,6 @@ public:
     {
         glDeleteVertexArrays(1, &vao);
         glDeleteProgram(program);
-//        glDeleteBuffers(1, &position_buffer);
     }
 
     virtual void onKey(int key, int action)
