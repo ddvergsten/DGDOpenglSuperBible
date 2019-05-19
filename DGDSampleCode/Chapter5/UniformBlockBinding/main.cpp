@@ -138,39 +138,30 @@ public:
         static const GLfloat positions[] = {-0.25f, -0.25f, 0.5f,-0.25, 0.25, 0.5, 0.25,-0.25, 0.5};
         static const GLfloat colors[] = {1.0f,0.0f,0.0f, 0.0f,1.0f,0.0f, 0.0f,0.0f,1.0f};
         //use a buffer to send data to shader
+
+        //set up a new buffer that will hold our positions values ie model coordinates
         glCreateVertexArrays(1, &vao);
-        glCreateBuffers(2, &buffers[0]);
-        //glBindBuffer(GL_ARRAY_BUFFER, dgdbuffers);
+        glCreateBuffers(2, &buffers[0]);//create 2 buffers buffers[0], [1]
         glBindVertexArray(vao);
+        //fill in gpu memory with position coords
         glNamedBufferStorage(buffers[0], sizeof(positions),//1024 * 1024, //4 floats per point, 3 points in triangle
                             positions,
                              0
                              );
-        //glBindBuffer(GL_ARRAY_BUFFER, dgdbuffers);
-        //glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
-        //void* ptr = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        //memcpy(ptr, data, sizeof(data));
 
-        //GLboolean ret =  glUnmapBuffer(GL_ARRAY_BUFFER);
-        //glBindBuffer(GL_ARRAY_BUFFER, dgdbuffers);
-         glVertexArrayVertexBuffer(vao, 0, buffers[0], 0, sizeof(vmath::vec3));
+        //setup format of buffer[1] coords.
+        glVertexArrayVertexBuffer(vao, 0, buffers[0], 0, sizeof(vmath::vec3));
         glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
         glVertexArrayAttribBinding(vao, 0,0);
          glEnableVertexArrayAttrib(vao, 0);
 
+         //create buffer to hold colors defined above
          glNamedBufferStorage(buffers[1], sizeof(colors), colors, 0);
+         //setup format of colors attribute so shader understands
          glVertexArrayVertexBuffer(vao, 1, buffers[1], 0, sizeof(vmath::vec3));
          glVertexArrayAttribFormat(vao, 1, 3, GL_FLOAT, GL_FALSE, 0);
          glVertexArrayAttribBinding(vao, 1, 1);
-         //glEnableVertexArrayAttrib(vao, 1);
          glEnableVertexAttribArray(1);
-         //////////////////////////
-        //glBindBuffer(GL_ARRAY_BUFFER, dgdbuffers);
-        //glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(data), data);
-        //void* ptr = glMapNamedBuffer(dgdbuffers, GL_WRITE_ONLY);
-        //memcpy(ptr, data, sizeof(data));
-        //glUnmapNamedBuffer(GL_ARRAY_BUFFER);
-        //glGenVertexArrays(1, &vao);
 
          static const GLchar* uniformNames[4] =
          {
@@ -179,25 +170,31 @@ public:
              "TransformBlock.rotation",
              "TransformBlock.projection_matrix"
          };
-         GLuint uniformIndices[4];
-         glGetUniformIndices(program, 4, uniformNames, uniformIndices);
 
+
+         //get indices of all uniform blocks in shader, in our case 1
+         GLuint uniformIndices;//[4];
+         glGetUniformIndices(program, 4, uniformNames, &uniformIndices);
+
+         //these will hold values of strides and offsets of all vars in TransformBlock
          GLint uniformOffsets[4];
          GLint arrayStrides[4];
          GLint matrixStrides[4];
-         glGetActiveUniformsiv(program, 4, uniformIndices,
+         //get strides/offsets etc of all vars in transformblock
+         glGetActiveUniformsiv(program, 4, &uniformIndices,
                                 GL_UNIFORM_OFFSET, uniformOffsets);
-         glGetActiveUniformsiv(program, 4, uniformIndices,
+         glGetActiveUniformsiv(program, 4, &uniformIndices,
                                 GL_UNIFORM_ARRAY_STRIDE, arrayStrides);
-         glGetActiveUniformsiv(program, 4, uniformIndices,
+         glGetActiveUniformsiv(program, 4, &uniformIndices,
                                 GL_UNIFORM_MATRIX_STRIDE, matrixStrides);
          std::cout<<"stop"<<std::endl;
-//        glVertexArrayVertexBuffer(vao, 0, dgdbuffers, 0, sizeof(vmath::vec4));
-//        glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);
-//        glEnableVertexArrayAttrib(vao, 0);
 
+         //create memory space for buffer to hold all uniform block vars
          unsigned char * buffer = (unsigned char*)malloc(4096);
+         //fill in scale float scale;  TransformBlock.scale"
          *((float *)(buffer + uniformOffsets[0])) = 3.0f;
+
+         //fill in TransformBlock.translation vec3 translation;
          ((float*)(buffer + uniformOffsets[1]))[0] = 0.5f;
          ((float*)(buffer + uniformOffsets[1]))[1] = 0.5f;
          ((float*)(buffer + uniformOffsets[1]))[2] = 1.0f;
@@ -205,6 +202,7 @@ public:
          const GLfloat rotations[] = {30.0f, 40.0f, 60.0f};
          unsigned int offset = uniformOffsets[2];
 
+         //set rotations in shader TransformBlock.rotation which is an float rotation[3]
          for(int n = 0 ; n < 3; n++)
          {
              *((float *)(buffer + offset)) = rotations[n];
@@ -217,6 +215,7 @@ public:
             2.0f, 4.0f, 6.0f, 8.0f,
             1.0f, 3.0f, 5.0f, 7.0f
         };
+        //set TransformBlock.projection_matrix mat4 projection_matrix;
         for(int i = 0 ;i <4 ; i++)
         {
             GLuint offset = uniformOffsets[3] + matrixStrides[3] *i;
@@ -227,73 +226,42 @@ public:
             }
         }
 
-        ///
-        //GLuint uniBuffer;
-        //glGenBuffers(1, &uniBuffer);
-        //glBindBuffer(GL_UNIFORM_BUFFER, uniBuffer);
-        //glBufferStorage(GL_UNIFORM_BUFFER, sizeof(buffer),
-                        //buffer, GL_MAP_WRITE_BIT);
-        //glBufferData(GL_UNIFORM_BUFFER, sizeof(buffer), 0, GL_STREAM_DRAW);
-        //glBufferSubData(GL_UNIFORM_BUFFER, sizeof(float)*4*4, 8*sizeof(float)*4*4, buffer);
-        //glBindBufferBase(GL_UNIFORM_BUFFER, 0, uniBuffer);
-        //GLint maxbb = 0;
-        //glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &maxbb);
 
-        //glGenBuffers(1, &unib);
-        //glBindBuffer(GL_UNIFORM_BUFFER, buffer);
-
-        //glBufferData(GL_UNIFORM_BUFFER, sizeof(myFloats), myFloats, GL_DYNAMIC_DRAW);
-        //glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, buffer);
-        //glGenBuffers(1, &buffer);
-        //glBindBuffer(GL_UNIFORM_BUFFER, buffer);
-
-        //glBufferData(GL_UNIFORM_BUFFER, sizeof(myFloats), myFloats, GL_DYNAMIC_DRAW);
-        //glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, buffer);
+        //buffer now holds the memory for TransformBlock that we want in gpu memory.
         GLuint buffer_b = 0;
-
-
+        //get binding index of TransformBlock
         GLuint tbindex = glGetUniformBlockIndex(program, "TransformBlock");
-
+        //set TransformBlock to binding index 0 which will match to our glBindBufferBase function below
         glUniformBlockBinding(program, tbindex, 0);
 
-        ///guesswork here
-        ///
+        //create a buffer that acts like common memory between cpu and gpu
+        //
         glGenBuffers(1, &buffer_b);
         glBindBuffer(GL_UNIFORM_BUFFER, buffer_b);
+        //fill buffer memory/cpu with values we set above ie copy over
+        //buffer which we filled above to gpu memory
         glBufferData(GL_UNIFORM_BUFFER, 4096, buffer, GL_DYNAMIC_DRAW);
-        ///
-        /// \brief glBindBufferBase
-        ///
-
-
+        //bind our buffer(buffer_b) to binding point 0? which is the uniform buffer in our
+        //shader in the vertex shader
         glBindBufferBase(GL_UNIFORM_BUFFER, 0, buffer_b);
 
-
+        //place to set breakpoint
         std::cout<<"testpoint"<<std::endl;
-
-
     }
 
     virtual void render(double currentTime)
     {
-//        int i;
         static const GLfloat green[] = { 0.0f, 0.25f, 0.0f, 1.0f };
-//        static const GLfloat one = 1.0f;
 
         glViewport(0, 0, info.windowWidth, info.windowHeight);
         glClearBufferfv(GL_COLOR, 0, green);
-//        glClearBufferfv(GL_DEPTH, 0, &one);
 
         glUseProgram(program);
+        //bind position and color buffers so shader knows to use them
         glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
         glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
 
         glUniform4f(0, 0.0f, 1.0f, 0.0f, 1.0f);
-//        glVertexArrayVertexBuffer(vao, 0, dgdbuffers, 0, 4*sizeof(float));//sizeof(vmath::vec4));
-//        glVertexArrayAttribFormat(vao, 0, 4, GL_FLOAT, GL_FALSE, 0);
-//        glVertexArrayAttribBinding(vao, 0,0);
-//        glEnableVertexArrayAttrib(vao, 0);
-
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
     }
