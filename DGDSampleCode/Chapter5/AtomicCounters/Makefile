@@ -15,7 +15,7 @@ CXX           = g++
 DEFINES       = 
 CFLAGS        = -pipe -g -Wall -W -fPIC $(DEFINES)
 CXXFLAGS      = -pipe -g -std=c++0x -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I../../include -I/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/../../../../../usr/lib/aarch64-linux-gnu -I/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/../include -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-g++
+INCPATH       = -I. -I../../include -I/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/../../../../../usr/lib/aarch64-linux-gnu -I/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/../include -I/usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-g++
 QMAKE         = /usr/lib/aarch64-linux-gnu/qt5/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -33,10 +33,10 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = openglbible1.0.0
-DISTDIR = /home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/.tmp/openglbible1.0.0
+DISTDIR = /home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/.tmp/openglbible1.0.0
 LINK          = g++
 LFLAGS        = 
-LIBS          = $(SUBLIBS) -L/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/../../../../../usr/lib/aarch64-linux-gnu/ -lglfw -L/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/../../../lib/ -lsb7 -ldl -lGL 
+LIBS          = $(SUBLIBS) -L/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/../../../../../usr/lib/aarch64-linux-gnu/ -lglfw -L/home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/../../../lib/ -lsb7 -ldl -lGL 
 AR            = ar cqs
 RANLIB        = 
 SED           = sed
@@ -138,7 +138,7 @@ first: all
 
 ####### Build rules
 
-$(TARGET): /home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlock/../../../lib/libsb7.a $(OBJECTS)  
+$(TARGET): /home/nvidia/Documents/sb7code-master/DGDSampleCode/Chapter5/ShaderStorageBlockSingleVal/../../../lib/libsb7.a $(OBJECTS)  
 	$(LINK) $(LFLAGS) -o $(TARGET) $(OBJECTS) $(OBJCOMP) $(LIBS)
 
 Makefile: openglbible.pro /usr/lib/aarch64-linux-gnu/qt5/mkspecs/linux-g++/qmake.conf /usr/lib/aarch64-linux-gnu/qt5/mkspecs/features/spec_pre.prf \

@@ -54,19 +54,6 @@ public:
 
     virtual void startup()
     {
-//        static const char * vs_source[] =
-//                {
-//                    "#version 420 core                                                 \n"
-//                    "                                                                  \n"
-//                    "void main(void)                                                   \n"
-//                    "{                                                                 \n"
-//                    "    const vec4 vertices[] = vec4[](vec4( 0.25, -0.25, 0.5, 1.0),  \n"
-//                    "                                   vec4(-0.25, -0.25, 0.5, 1.0),  \n"
-//                    "                                   vec4( 0.25,  0.25, 0.5, 1.0)); \n"
-//                    "                                                                  \n"
-//                    "    gl_Position = vertices[gl_VertexID];                          \n"
-//                    "}                                                                 \n"
-//                };
 
         static const char * vs_source[] =
         {
@@ -81,9 +68,9 @@ public:
             "out vec3 vscolor;                                                                                                      \n"
             "void main(void)                                                                                                        \n"
             "{                                                                                                                      \n"
-            //"   const vec4 vertices[3] = vec4[3](vec4(-0.25f, -0.25f, 0.5f,1.0),                   \n"
-            //"           vec4(-0.25, 0.25, 0.5, 1.0), vec4(0.25,-0.25, 0.5, 1.0));                \n"
             "                                                                                                                       \n"
+            //this line is only possible with shader storage block ie we can write to it in the shader
+            "   data_SSBO[0] = -0.75;                                                                                               \n"
             "   gl_Position = vec4(data_SSBO[gl_VertexID * 3], data_SSBO[(gl_VertexID*3) + 1], data_SSBO[(gl_VertexID*3) + 2],      \n"
             "                      1.0);                                                                                            \n"
             //"   gl_Position = vertices[gl_VertexID];                                                                                        \n"
@@ -93,18 +80,6 @@ public:
         };
 
 
-
-//        static const char * fs_source[] =
-//        {
-//            "#version 420 core                                                 \n"
-//            "                                                                  \n"
-//            "out vec4 color;                                                   \n"
-//            "                                                                  \n"
-//            "void main(void)                                                   \n"
-//            "{                                                                 \n"
-//            "    color = vec4(0.0, 0.8, 1.0, 1.0);                             \n"
-//            "}                                                                 \n"
-//        };
 
         static const char * fs_source[] =
         {
@@ -173,7 +148,6 @@ public:
 
         glLinkProgram(program);
         glCreateVertexArrays(1, &vao);
-        //glCreateBuffers(2, &buffers[0]);//create 2 buffers buffers[0], [1]
         glBindVertexArray(vao);
 
 //        //create a buffer that acts like common memory between cpu and gpu
@@ -188,14 +162,6 @@ public:
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, ssbo);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0); // unbind
 
-        //old
-       // glBindBuffer(GL_UNIFORM_BUFFER, buffer_b);
-        //fill buffer memory/cpu with values we set above ie copy over
-        //buffer which we filled above to gpu memory
-        //glBufferData(GL_UNIFORM_BUFFER, 4096, buffer, GL_DYNAMIC_DRAW);
-        //bind our buffer(buffer_b) to binding point 0? which is the uniform buffer in our
-        //shader in the vertex shader
-        //glBindBufferBase(GL_UNIFORM_BUFFER, 0, buffer_b);
 
         //place to set breakpoint
         std::cout<<"testpoint"<<std::endl;
@@ -209,11 +175,6 @@ public:
         glClearBufferfv(GL_COLOR, 0, green);
 
         glUseProgram(program);
-        //bind position and color buffers so shader knows to use them
-        //glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-        //glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
-
-       // glUniform4f(1, 1.0f, 0.0f, 0.0f, 1.0f);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
     }
