@@ -1,27 +1,8 @@
-
-
-///*
-// * Copyright © 2012-2015 Graham Sellers
-// *
-// * Permission is hereby granted, free of charge, to any person obtaining a
-// * copy of this software and associated documentation files (the "Software"),
-// * to deal in the Software without restriction, including without limitation
-// * the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// * and/or sell copies of the Software, and to permit persons to whom the
-// * Software is furnished to do so, subject to the following conditions:
-// *
-// * The above copyright notice and this permission notice (including the next
-// * paragraph) shall be included in all copies or substantial portions of the
-// * Software.
-// *
-// * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL
-// * THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// * DEALINGS IN THE SOFTWARE.
-// */
+//This example demonstrates using an atomic counter "thread safe" inside a shader.
+//also demonstrates switching between shader programs, and having the uniform from
+//one shader available in the 2nd shader program just because the common buffer is bound
+//to binding point 0.  Both shaders uniform variable "area" is also bound to binding point 0
+//as a result, switching from 1 program to the other, the data from shader 1 is available in shader 2.
 #define _LINUX
 #include <sb7.h>
 #include <vmath.h>
@@ -55,65 +36,51 @@ public:
     virtual void startup()
     {
 
+        //render a triangle "hard coded"
         static const char * vs_source[] =
         {
-            "#version 450 core                                                 \n"
-            "                                                                  \n"
-            "void main(void)                                                   \n"
-            "{                                                                 \n"
-            "    const vec4 vertices[3] = vec4[3](vec4( -0.25, -0.25, 0.5, 1.0),  \n"
-            "                                   vec4(0.0, 0.25, 0.5, 1.0),  \n"
-            "                                   vec4( 0.25,  -0.25, 0.5, 1.0)); \n"
-            "                                                                  \n"
-            "    gl_Position = vertices[gl_VertexID];                          \n"
-            "}                                                                 \n"
+            "#version 450 core                                                      \n"
+            "                                                                       \n"
+            "void main(void)                                                        \n"
+            "{                                                                      \n"
+            "    const vec4 vertices[3] = vec4[3](vec4( -0.25, -0.25, 0.5, 1.0),    \n"
+            "                                   vec4(0.0, 0.25, 0.5, 1.0),          \n"
+            "                                   vec4( 0.25,  -0.25, 0.5, 1.0));     \n"
+            "                                                                       \n"
+            "    gl_Position = vertices[gl_VertexID];                               \n"
+            "}                                                                      \n"
         };
-//        static const char * vs_source[] =
-//        {
-//            "#version 450 core                                                                                                      \n"
-//            "void main(void)                                                                                                        \n"
-//            "{                                                                                                                      \n"
-//            "   const vec4 verts[] = vec4[3](vec4(-0.25, -0.25, 5.0, 1.0),                                                         \n"
-//            "                               vec4(0.0, -0.25, 5.0, 1.0),                                                         \n"
-//            "                               vec4(0.25,-0.25, 5.0, 1.0));                                                        \n"
-//            "   gl_Position = verts[gl_VertexID];                                                                                   \n"
-//            "}                                                                                                                      \n"
-//        };
 
-
+        //this shaders var "area" is bound to the same uniform buffer binding point
+        //as "area" in the other fragment shader, so all we need to do is
+        //switch "programs" below and the data from fs_source is available in this shader
         static const char * fsdraw_source[] =
         {
-            "#version 450 core                          \n"
-            "layout (binding = 0) uniform area_block    "
-            "{                                          "
-            "   uint counter_value;"
-            "};"
-            "out vec4 color;"
-            "uniform float max_area;"
-            "void main(void)"
-            "{"
-            //"   float fval = float(aval) / 1000000.0;              \n"
-            "   float brightness = clamp(float(counter_value) / 1000000.0,"
-            "                       0.0, 1.0);"
-           "   color = vec4(brightness, 0.0, 1.0, 1.0);"
-           // "   color = vec4(0.0, 0.0, 1.0, 1.0);                           \n"
+            "#version 450 core                                              \n"
+            "layout (binding = 0, offset = 0) uniform atomic_uint area;     \n"
+            "out vec4 color;                                                \n"
+            "void main(void)                                                \n"
+            "{                                                              \n"
+            "   uint aval = atomicCounter(area);                            \n"
+            "   float fval = float(aval) / 1000000.0;                       \n"
+            "   color = vec4(1.0, fval, 0.0, 1.0);                          \n"
             "}"
         };
 
+        //this shader just counts how many times the fragment shader is called
+        //ie how many pixels are in the triangle we're rendering from the vertex shader above
         static const char * fs_source[] =
         {
-            "#version 450 core                          \n"
+            "#version 450 core                                              \n"
             "layout (binding = 0, offset = 0) uniform atomic_uint area;     \n"
-            "out vec4 color;"
-            "void main(void)                            \n"
-            "{                                          \n"
+            "out vec4 color;                                                \n"
+            "void main(void)                                                \n"
+            "{                                                              \n"
             "       atomicCounterIncrement(area);                           \n"
-            //"   float aval = area / 100.0;              \n"
-            "   uint aval = atomicCounter(area);       \n"
-            "   float fval = float(aval) / 1000000.0;              \n"
-            "   color = vec4(1.0, fval, 0.0, 1.0);      \n"
-            "}                                          \n"
+            "}                                                              \n"
         };
+
+        //compile our shaders
         GLint isCompiled = -1;
         program = glCreateProgram();
         GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
@@ -163,7 +130,8 @@ public:
 
         glLinkProgram(program);
 
-        ///////////////create 2nd program
+        //compile 2nd set of shaders into a program that will
+        //do the actual drawing
         isCompiled = -1;
         programdraw = glCreateProgram();
         GLuint fsdraw = glCreateShader(GL_FRAGMENT_SHADER);
@@ -171,6 +139,7 @@ public:
         glCompileShader(fsdraw);
         glGetShaderiv(fsdraw, GL_COMPILE_STATUS, &isCompiled);
 
+        //error checking/messages
         if(isCompiled == GL_FALSE)
         {
             GLint maxLength = 0;
@@ -185,7 +154,7 @@ public:
             glDeleteShader(fsdraw); // Don't leak the shader.
             return;
         }
-
+        //error checking/messages
         GLuint vsdraw = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vsdraw, 1, vs_source, NULL);
         glCompileShader(vsdraw);
@@ -209,7 +178,8 @@ public:
         glAttachShader(programdraw, fsdraw);
 
         glLinkProgram(programdraw);
-        /////////////////
+
+        //create our atomic counter/buffer and bind to binding point 0
         glCreateVertexArrays(1, &vao);
         glBindVertexArray(vao);
 
@@ -219,17 +189,11 @@ public:
         glBufferData(GL_ATOMIC_COUNTER_BUFFER, 16 * sizeof(GLuint),
                      NULL, GL_DYNAMIC_COPY);
 
-        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, buf);//TODO: IS THIS REALLY 3, OR 0
+        glBindBufferBase(GL_ATOMIC_COUNTER_BUFFER, 0, buf);
 
         glBindBuffer(GL_ATOMIC_COUNTER_BUFFER, buf);
         const GLuint zero = 0;
         glBufferSubData(GL_ATOMIC_COUNTER_BUFFER, 2 * sizeof(GLuint), sizeof(GLuint), &zero);
-
-
-
-
-        //place to set breakpoint
-        std::cout<<"testpoint"<<std::endl;
     }
 
     virtual void render(double currentTime)
@@ -240,12 +204,15 @@ public:
         glClearBufferfv(GL_COLOR, 0, green);
 
         glUseProgram(program);
+        //don't actually output any pixels from this shader because for this example
+        //it is just counting the number of pixels in it's var "area"
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        //glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        //we're going to use the 2nd fragment shader to do the actual drawing
+        //it's going to use the counter "area" from the other shader to output it's pixel value
         glUseProgram(programdraw);
-        //glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        //turn on color output
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
         GLuint areaindex = glGetUniformBlockIndex(programdraw, "area_block");
         glUniformBlockBinding(programdraw, areaindex, 0);
